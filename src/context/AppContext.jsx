@@ -20,8 +20,9 @@ const DEFAULT_SETTINGS = {
     currentWeight: 0,
     goalWeight: 0,
     hasOnboarded: false,
-    selectedModel: 'gemini-2.0-flash-exp', // Default to latest experimental model
+    selectedModel: 'gemini-3-flash-preview',
     apiKey: '',
+    autoSubmit: true,
 };
 
 const STORAGE_KEYS = {
@@ -30,6 +31,8 @@ const STORAGE_KEYS = {
     RECIPES: 'calorie_tracker_recipes',
     WEIGHT_LOGS: 'calorie_tracker_weight_logs',
     CHAT: 'calorie_tracker_chat',
+    TEMPLATES: 'calorie_tracker_templates',
+    MEAL_PLANS: 'calorie_tracker_meal_plans',
 };
 
 export const AppProvider = ({ children }) => {
@@ -41,6 +44,8 @@ export const AppProvider = ({ children }) => {
     const [chatMessages, setChatMessages] = useState([
         { id: 'welcome', role: 'ai', content: 'Hello! I can help you track calories. Send me a photo of your food, type what you ate, or just say it!' }
     ]);
+    const [mealTemplates, setMealTemplates] = useState([]);
+    const [mealPlans, setMealPlans] = useState({});
     const [loading, setLoading] = useState(true);
 
     // --- Persistence (Load) ---
@@ -53,8 +58,8 @@ export const AppProvider = ({ children }) => {
 
             if (savedSettings) {
                 const parsed = JSON.parse(savedSettings);
-                // Migration: Force upgrade from old/broken models
-                if (parsed.selectedModel === 'gemini-1.5-flash' || parsed.selectedModel === 'gemini-3-flash-preview') {
+                // Migration: Force upgrade from retired models
+                if (parsed.selectedModel === 'gemini-1.5-flash') {
                     parsed.selectedModel = 'gemini-2.0-flash-exp';
                 }
                 setSettings({ ...DEFAULT_SETTINGS, ...parsed });
@@ -65,6 +70,12 @@ export const AppProvider = ({ children }) => {
 
             const savedChat = localStorage.getItem(STORAGE_KEYS.CHAT);
             if (savedChat) setChatMessages(JSON.parse(savedChat));
+
+            const savedTemplates = localStorage.getItem(STORAGE_KEYS.TEMPLATES);
+            if (savedTemplates) setMealTemplates(JSON.parse(savedTemplates));
+
+            const savedMealPlans = localStorage.getItem(STORAGE_KEYS.MEAL_PLANS);
+            if (savedMealPlans) setMealPlans(JSON.parse(savedMealPlans));
         } catch (error) {
             console.error("Failed to load data significantly:", error);
         } finally {
@@ -74,34 +85,32 @@ export const AppProvider = ({ children }) => {
 
     // --- Persistence (Save) ---
     useEffect(() => {
-        if (!loading) {
-            localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-        }
+        if (!loading) localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
     }, [settings, loading]);
 
     useEffect(() => {
-        if (!loading) {
-            localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(logs));
-        }
+        if (!loading) localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(logs));
     }, [logs, loading]);
 
     useEffect(() => {
-        if (!loading) {
-            localStorage.setItem(STORAGE_KEYS.RECIPES, JSON.stringify(recipes));
-        }
+        if (!loading) localStorage.setItem(STORAGE_KEYS.RECIPES, JSON.stringify(recipes));
     }, [recipes, loading]);
 
     useEffect(() => {
-        if (!loading) {
-            localStorage.setItem(STORAGE_KEYS.WEIGHT_LOGS, JSON.stringify(weightLogs));
-        }
+        if (!loading) localStorage.setItem(STORAGE_KEYS.WEIGHT_LOGS, JSON.stringify(weightLogs));
     }, [weightLogs, loading]);
 
     useEffect(() => {
-        if (!loading) {
-            localStorage.setItem(STORAGE_KEYS.CHAT, JSON.stringify(chatMessages));
-        }
+        if (!loading) localStorage.setItem(STORAGE_KEYS.CHAT, JSON.stringify(chatMessages));
     }, [chatMessages, loading]);
+
+    useEffect(() => {
+        if (!loading) localStorage.setItem(STORAGE_KEYS.TEMPLATES, JSON.stringify(mealTemplates));
+    }, [mealTemplates, loading]);
+
+    useEffect(() => {
+        if (!loading) localStorage.setItem(STORAGE_KEYS.MEAL_PLANS, JSON.stringify(mealPlans));
+    }, [mealPlans, loading]);
 
     // --- Actions ---
 
@@ -170,8 +179,68 @@ export const AppProvider = ({ children }) => {
             }
             return [...prev, { id: uuidv4(), date: dateStr, weight }];
         });
-        // Update current weight in settings as cache/fallback
         updateSettings({ currentWeight: weight });
+    };
+
+    // --- Meal Templates ---
+
+    const addTemplate = (template) => {
+        const newTemplate = { id: uuidv4(), ...template };
+        setMealTemplates(prev => [...prev, newTemplate]);
+    };
+
+    const removeTemplate = (id) => {
+        setMealTemplates(prev => prev.filter(t => t.id !== id));
+    };
+
+    // --- Meal Plans ---
+
+    const addMealPlanItem = (dateKey, mealType, item) => {
+        setMealPlans(prev => {
+            const dayPlan = prev[dateKey] || {};
+            const mealItems = dayPlan[mealType] || [];
+            return {
+                ...prev,
+                [dateKey]: {
+                    ...dayPlan,
+                    [mealType]: [...mealItems, { id: uuidv4(), ...item }],
+                },
+            };
+        });
+    };
+
+    const removeMealPlanItem = (dateKey, mealType, itemId) => {
+        setMealPlans(prev => {
+            const dayPlan = prev[dateKey] || {};
+            const mealItems = (dayPlan[mealType] || []).filter(i => i.id !== itemId);
+            return {
+                ...prev,
+                [dateKey]: { ...dayPlan, [mealType]: mealItems },
+            };
+        });
+    };
+
+    const logPlannedMeal = (dateKey, mealType) => {
+        const items = (mealPlans[dateKey] || {})[mealType] || [];
+        const planDate = new Date(dateKey).toISOString();
+        items.forEach(item => {
+            addLog({
+                food_name: item.food_name,
+                calories: item.calories,
+                protein: item.protein || 0,
+                carbs: item.carbs || 0,
+                fat: item.fat || 0,
+                quantity: item.quantity || '1 serving',
+                source: 'plan',
+                meal_type: mealType,
+                timestamp: planDate,
+            });
+        });
+        // Clear the logged meal slot
+        setMealPlans(prev => {
+            const dayPlan = prev[dateKey] || {};
+            return { ...prev, [dateKey]: { ...dayPlan, [mealType]: [] } };
+        });
     };
 
     const value = {
@@ -182,6 +251,8 @@ export const AppProvider = ({ children }) => {
         chatMessages,
         loading,
         currentDate,
+        mealTemplates,
+        mealPlans,
         updateSettings,
         setChatMessages,
         addLog,
@@ -193,6 +264,11 @@ export const AppProvider = ({ children }) => {
         logWeight,
         getTotalsForDate,
         changeDate,
+        addTemplate,
+        removeTemplate,
+        addMealPlanItem,
+        removeMealPlanItem,
+        logPlannedMeal,
     };
 
     return (

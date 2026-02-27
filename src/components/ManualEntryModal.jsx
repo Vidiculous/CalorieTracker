@@ -1,15 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { X, Plus, Flame, Clock, Coffee, Sun, Moon, Cookie } from 'lucide-react';
+import { X, Plus, Clock, Zap } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const ManualEntryModal = ({ onClose, onAdd }) => {
-    const { logs } = useAppContext();
+    const { logs, addTemplate } = useAppContext();
     const [foodName, setFoodName] = useState('');
     const [calories, setCalories] = useState('');
     const [protein, setProtein] = useState('');
     const [carbs, setCarbs] = useState('');
     const [fat, setFat] = useState('');
-    const [mealType, setMealType] = useState(''); // Empty = Auto (Time based)
+    const [mealType, setMealType] = useState('');
+    const [templateSaved, setTemplateSaved] = useState(false);
 
     const [suggestions, setSuggestions] = useState([]);
 
@@ -19,7 +20,6 @@ const ManualEntryModal = ({ onClose, onAdd }) => {
         logs.forEach(log => {
             if (log.food_name && log.calories) {
                 const key = log.food_name.toLowerCase().trim();
-                // Store the most recent full entry for this food name
                 if (!unique.has(key)) {
                     unique.set(key, {
                         name: log.food_name,
@@ -69,10 +69,29 @@ const ManualEntryModal = ({ onClose, onAdd }) => {
             fat: parseInt(fat) || 0,
             quantity: '1 serving',
             source: 'manual',
-            meal_type: mealType || undefined // If empty, let Dashboard infer from time
+            meal_type: mealType || undefined
         });
         onClose();
     };
+
+    const handleSaveTemplate = () => {
+        if (!foodName || !calories) return;
+        addTemplate({
+            name: foodName,
+            items: [{
+                food_name: foodName,
+                calories: parseInt(calories),
+                protein: parseInt(protein) || 0,
+                carbs: parseInt(carbs) || 0,
+                fat: parseInt(fat) || 0,
+                quantity: '1 serving',
+            }],
+        });
+        setTemplateSaved(true);
+        setTimeout(() => setTemplateSaved(false), 2000);
+    };
+
+    const canSubmit = foodName && calories;
 
     return (
         <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
@@ -132,8 +151,8 @@ const ManualEntryModal = ({ onClose, onAdd }) => {
                                     type="button"
                                     onClick={() => setMealType(current => current === type ? '' : type)}
                                     className={`p-2 rounded-xl text-xs font-medium transition-all border ${mealType === type
-                                            ? 'bg-rose-500 text-white border-rose-500'
-                                            : 'bg-neutral-800 text-neutral-400 border-neutral-800 hover:border-neutral-600'
+                                        ? 'bg-rose-500 text-white border-rose-500'
+                                        : 'bg-neutral-800 text-neutral-400 border-neutral-800 hover:border-neutral-600'
                                         }`}
                                 >
                                     {type}
@@ -190,10 +209,23 @@ const ManualEntryModal = ({ onClose, onAdd }) => {
 
                     <button
                         type="submit"
-                        disabled={!foodName || !calories}
+                        disabled={!canSubmit}
                         className="w-full bg-rose-500 hover:bg-rose-600 disabled:opacity-50 disabled:cursor-not-allowed text-white p-4 rounded-2xl font-bold shadow-lg shadow-rose-500/20 transition-all active:scale-[0.98] mt-4"
                     >
                         Add Entry
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={handleSaveTemplate}
+                        disabled={!canSubmit}
+                        className={`w-full flex items-center justify-center gap-2 p-3 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] border ${templateSaved
+                            ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
+                            : 'bg-neutral-800 text-neutral-400 border-neutral-700 hover:border-amber-500/50 hover:text-amber-400 disabled:opacity-40 disabled:cursor-not-allowed'
+                            }`}
+                    >
+                        <Zap size={15} />
+                        {templateSaved ? 'Template Saved!' : 'Save as Template'}
                     </button>
                 </form>
             </div>

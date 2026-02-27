@@ -124,7 +124,13 @@ export const analyzeImage = async (apiKey, modelName, input, context = {}) => {
 
         const isObject = typeof input === 'object' && input.image;
         const base64Image = isObject ? input.image : input;
-        const userPrompt = isObject && input.text ? input.text : "Analyze this food image and estimate calories.";
+        const userPrompt = isObject && input.text
+            ? input.text
+            : "Identify every food item visible in this photo. " +
+              "Estimate portion sizes using visual reference points — plate diameter, utensils, " +
+              "packaging labels, or hand size if visible. " +
+              "List each item separately in the 'items' array with your best calorie and macro estimate. " +
+              "Set confidence to 'low' if the portion is hard to judge.";
 
         const imagePart = {
             inlineData: {
@@ -152,7 +158,7 @@ export const analyzeImage = async (apiKey, modelName, input, context = {}) => {
     }
 };
 
-export const transcribeAudio = async (apiKey, modelName, audioData) => {
+export const transcribeAudio = async (apiKey, modelName, audioData, mimeType = 'audio/webm') => {
     try {
         const genAI = getGenAI(apiKey);
         const model = genAI.getGenerativeModel({
@@ -162,7 +168,7 @@ export const transcribeAudio = async (apiKey, modelName, audioData) => {
         const audioPart = {
             inlineData: {
                 data: audioData.split(',')[1],
-                mimeType: "audio/webm"
+                mimeType: mimeType
             },
         };
 
