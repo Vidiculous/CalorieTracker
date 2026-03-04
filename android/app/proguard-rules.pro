@@ -1,0 +1,5 @@
+-keepattributes *Annotation*
+-keepclassmembers class ** { @com.squareup.moshi.* <methods>; }
+-keep class com.calorietracker.data.remote.dto.** { *; }
+-keep class com.calorietracker.data.model.** { *; }
+-dontwarn javax.annotation.**

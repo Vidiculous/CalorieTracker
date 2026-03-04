@@ -36,3 +36,10 @@ desktop.ini
 *.njsproj
 *.sln
 *.sw?
+
+android/.gradle
+android/.idea
+android/.kotlin
+android/build
+android/app/build
+*.hprof

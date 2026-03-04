@@ -3,7 +3,16 @@
     "allow": [
       "Bash(npm run:*)",
       "Bash(npm install:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(jar tf \"/c/Users/arvid/.gradle/caches/modules-2/files-2.1/com.patrykandpatrick.vico/compose/2.0.0-beta.2/c8b38b9c55f1b1aa89c60b3c3ec798fd6515775c/compose-2.0.0-beta.2.aar\")",
+      "Bash(java -version)",
+      "Bash(python3.exe --version)",
+      "Bash(py --version)",
+      "Bash(unzip -l \"/c/Users/arvid/.gradle/caches/modules-2/files-2.1/com.patrykandpatrick.vico/compose/2.0.0-beta.2/c8b38b9c55f1b1aa89c60b3c3ec798fd6515775c/compose-2.0.0-beta.2.aar\")",
+      "Bash(M3_SOURCES=\"/c/Users/arvid/.gradle/caches/modules-2/files-2.1/com.patrykandpatrick.vico/compose-m3/2.0.0-beta.2/7802a1874510aa17fbc0e0acddfadf877e2a2f66/compose-m3-2.0.0-beta.2-sources.jar\" TMPDIR=\"/tmp/vico_m3_sources\" mkdir -p \"$TMPDIR\" unzip -o \"$M3_SOURCES\" -d \"$TMPDIR\" 2)",
+      "Bash(1 find \"$TMPDIR\" -name \"*.kt\")",
+      "Bash(xargs cat)",
+      "Bash(unzip -l \"/c/Users/arvid/.gradle/caches/modules-2/files-2.1/com.patrykandpatrick.vico/compose-m3/2.0.0-beta.2/7802a1874510aa17fbc0e0acddfadf877e2a2f66/compose-m3-2.0.0-beta.2-sources.jar\")"
     ]
   }
 }

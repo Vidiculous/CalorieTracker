@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+android/.gradle/
+android/app/build/
+android/build/
+
+# Lock files (large, auto-generated)
+package-lock.json
+android/gradle/wrapper/gradle-wrapper.jar
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment files
+.env
+.env.test
+.env.production
+
+# Android heap dumps
+*.hprof
+
+# Android local config (machine-specific)
+android/local.properties

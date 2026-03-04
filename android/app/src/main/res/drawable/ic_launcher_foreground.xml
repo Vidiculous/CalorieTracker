@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Adaptive icon foreground — 108×108dp viewport.
+  Safe zone: centred 66dp circle (radius 33 from centre 54,54).
+
+  Design: calorie-tracking progress ring with a flame inside.
+    • Ring  — near-complete arc (gap at bottom), rose→orange gradient stroke
+    • Flame — outer body (rose→amber), inner core (cream→orange)
+    • Sparkles — two small 4-point stars flanking the flame tip
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- ═══════════════════════════════════════════════
+         PROGRESS RING
+         r=34, gap at bottom (60°–120°).
+         Endpoints: (71,83.4) and (37,83.4)
+         Arc: large-arc=1, sweep=0 (CCW) — traces top of circle.
+         ═══════════════════════════════════════════════ -->
+    <path
+        android:pathData="M71,83.4 A34,34,0,1,0,37,83.4"
+        android:fillColor="#00000000"
+        android:strokeWidth="6.5"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:type="sweep"
+                android:centerX="54"
+                android:centerY="54">
+                <item android:offset="0.00" android:color="#FB7185"/>
+                <item android:offset="0.30" android:color="#F97316"/>
+                <item android:offset="0.60" android:color="#FBBF24"/>
+                <item android:offset="0.85" android:color="#FB7185"/>
+                <item android:offset="1.00" android:color="#E11D48"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Small filled dot at ring start (lower-right cap accent) -->
+    <path
+        android:pathData="M71,83.4 m-3,0 a3,3,0,1,0,6,0 a3,3,0,1,0,-6,0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="71"
+                android:centerY="83.4"
+                android:gradientRadius="3.5">
+                <item android:offset="0.0" android:color="#FBBF24"/>
+                <item android:offset="1.0" android:color="#FB923C"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- ═══════════════════════════════════════════════
+         FLAME — outer body
+         Centred at x=54; bottom y=76, tip y=28.
+         Classic teardrop-with-notch silhouette.
+         ═══════════════════════════════════════════════ -->
+    <path
+        android:pathData="
+            M54,76
+            C49,76 40,71 41,63
+            C42,57 45,53 43,47
+            C41,41 44,36 47,36
+            C49,36 50,39 51,42
+            C52,35 54,28 54,28
+            C54,28 56,35 57,42
+            C58,39 59,36 61,36
+            C64,36 67,41 65,47
+            C63,53 66,57 67,63
+            C68,71 59,76 54,76 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="54" android:startY="28"
+                android:endX="54"   android:endY="76">
+                <item android:offset="0.0" android:color="#FCD34D"/>
+                <item android:offset="0.4" android:color="#F97316"/>
+                <item android:offset="1.0" android:color="#BE123C"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- ═══════════════════════════════════════════════
+         FLAME — bright inner core
+         Smaller shape, offset slightly upward.
+         ═══════════════════════════════════════════════ -->
+    <path
+        android:pathData="
+            M54,70
+            C50,70 45,66 46,61
+            C47,57 49,55 48,51
+            C47,47 49,45 51,45
+            C52,45 52,47 53,49
+            C54,44 54,40 54,40
+            C54,40 54,44 55,49
+            C56,47 56,45 57,45
+            C59,45 61,47 60,51
+            C59,55 61,57 62,61
+            C63,66 58,70 54,70 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="54" android:startY="40"
+                android:endX="54"   android:endY="70">
+                <item android:offset="0.0" android:color="#FFFBEB"/>
+                <item android:offset="0.5" android:color="#FDE68A"/>
+                <item android:offset="1.0" android:color="#FB923C"/>
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- ═══════════════════════════════════════════════
+         SPARKLES — 4-point stars flanking the flame tip
+         ═══════════════════════════════════════════════ -->
+
+    <!-- Left sparkle (upper-left of flame) -->
+    <path
+        android:pathData="
+            M36,38 L37,41 L40,42 L37,43 L36,46 L35,43 L32,42 L35,41 Z"
+        android:fillColor="#FCD34D"
+        android:fillAlpha="0.85"/>
+
+    <!-- Right sparkle (upper-right of flame) -->
+    <path
+        android:pathData="
+            M73,33 L74,36 L77,37 L74,38 L73,41 L72,38 L69,37 L72,36 Z"
+        android:fillColor="#FB923C"
+        android:fillAlpha="0.85"/>
+
+    <!-- Tiny dot accent (top-right, near ring) -->
+    <path
+        android:pathData="M79,22 m-2,0 a2,2,0,1,0,4,0 a2,2,0,1,0,-4,0"
+        android:fillColor="#FB7185"
+        android:fillAlpha="0.6"/>
+
+</vector>
