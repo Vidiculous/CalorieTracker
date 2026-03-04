@@ -1,13 +1,15 @@
 package com.calorietracker.ui.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.NorthWest
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.calorietracker.data.model.FoodLogEntry
 import com.calorietracker.data.model.FoodItem
 import com.calorietracker.ui.screen.onboarding.outlinedTextFieldColors
@@ -40,9 +43,20 @@ fun ManualEntrySheet(
     var selectedMealType by remember { mutableStateOf("") }
     var templateSaved by remember { mutableStateOf(false) }
 
+    val recents = remember(suggestions) { suggestions.take(12) }
+
     val filteredSuggestions = remember(foodName, suggestions) {
         if (foodName.length < 2) emptyList()
         else suggestions.filter { it.foodName.contains(foodName, ignoreCase = true) }.take(5)
+    }
+
+    fun fillFromEntry(entry: FoodLogEntry) {
+        foodName = entry.foodName
+        calories = entry.calories.toString()
+        protein = entry.protein.toString()
+        carbs = entry.carbs.toString()
+        fat = entry.fat.toString()
+        if (entry.mealType.isNotEmpty()) selectedMealType = entry.mealType
     }
 
     ModalBottomSheet(
@@ -71,43 +85,86 @@ fun ManualEntrySheet(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
-            // Food name with autocomplete
-            Box {
-                OutlinedTextField(
-                    value = foodName,
-                    onValueChange = { foodName = it },
-                    label = { Text("Food Name") },
-                    colors = outlinedTextFieldColors(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                if (filteredSuggestions.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(top = 56.dp),
-                        colors = CardDefaults.cardColors(containerColor = Neutral800),
-                        elevation = CardDefaults.cardElevation(8.dp)
-                    ) {
-                        filteredSuggestions.forEach { suggestion ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        foodName = suggestion.foodName
-                                        calories = suggestion.calories.toString()
-                                        protein = suggestion.protein.toString()
-                                        carbs = suggestion.carbs.toString()
-                                        fat = suggestion.fat.toString()
-                                    }
-                                    .padding(12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(suggestion.foodName, color = Color.White)
-                                Text("${suggestion.calories} kcal", color = Neutral400)
+            // Food name with inline autocomplete
+            OutlinedTextField(
+                value = foodName,
+                onValueChange = { foodName = it },
+                label = { Text("Food Name") },
+                colors = outlinedTextFieldColors(),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
+            )
+
+            // Autocomplete dropdown (when typing)
+            if (filteredSuggestions.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Neutral800),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    filteredSuggestions.forEach { suggestion ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { fillFromEntry(suggestion) }
+                                .padding(horizontal = 14.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(suggestion.foodName, color = Color.White, fontSize = 14.sp)
+                                Text("${suggestion.quantity} · ${suggestion.calories} kcal", color = Neutral500, fontSize = 12.sp)
                             }
+                            Icon(
+                                Icons.Default.NorthWest,
+                                contentDescription = null,
+                                tint = Neutral600,
+                                modifier = Modifier.size(14.dp)
+                            )
                         }
+                        HorizontalDivider(color = Neutral800.copy(alpha = 0.5f), thickness = 0.5.dp)
                     }
+                }
+            }
+
+            // Recents list (shown only when field is empty)
+            if (foodName.isEmpty() && recents.isNotEmpty()) {
+                Spacer(Modifier.height(12.dp))
+                Text("Recent", color = Neutral500, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                Spacer(Modifier.height(6.dp))
+
+                // Show up to 8 recents inline; sheet itself scrolls via ModalBottomSheet
+                recents.take(8).forEach { entry ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { fillFromEntry(entry) }
+                            .padding(vertical = 9.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(entry.foodName, color = Neutral300, fontSize = 14.sp)
+                            Text(
+                                buildString {
+                                    if (entry.quantity.isNotEmpty()) append("${entry.quantity} · ")
+                                    append("${entry.calories} kcal")
+                                },
+                                color = Neutral500,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Icon(
+                            Icons.Default.NorthWest,
+                            contentDescription = "Use this entry",
+                            tint = Neutral600,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
+                    HorizontalDivider(color = Neutral800, thickness = 0.5.dp)
                 }
             }
 
